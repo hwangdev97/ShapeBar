@@ -23,6 +23,7 @@ final class ServiceRegistry {
         register(VercelProvider())
         register(CloudflareProvider())
         register(GitHubActionsProvider())
+        register(NetlifyProvider())
         register(XcodeCloudProvider())
         register(TestFlightProvider())
     }
