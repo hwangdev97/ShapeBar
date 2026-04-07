@@ -22,6 +22,7 @@ final class ServiceRegistry {
     func registerBuiltInProviders() {
         register(VercelProvider())
         register(CloudflareProvider())
+        register(GitHubActionsProvider())
         register(XcodeCloudProvider())
         register(TestFlightProvider())
     }
