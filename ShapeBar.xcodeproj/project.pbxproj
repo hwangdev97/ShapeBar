@@ -367,17 +367,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QDJ93ZUQ9B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/ShapeBar/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shapebar.app;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.hwang.shapebar;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -506,17 +509,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QDJ93ZUQ9B;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/ShapeBar/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shapebar.app;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.hwang.shapebar;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
