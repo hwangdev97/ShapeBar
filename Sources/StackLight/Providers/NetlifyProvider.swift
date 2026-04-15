@@ -7,6 +7,8 @@ final class NetlifyProvider: DeploymentProvider {
     let iconAsset: String? = "netlify"
     let docsURL = URL(string: "https://app.netlify.com/user/applications#personal-access-tokens")
 
+    let dashboardURL = URL(string: "https://app.netlify.com")
+
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "netlify.token"), !token.isEmpty else { return false }
         let siteIds = UserDefaults.standard.string(forKey: "netlify.siteIds") ?? ""

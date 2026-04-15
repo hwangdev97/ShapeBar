@@ -7,6 +7,8 @@ final class FlyioProvider: DeploymentProvider {
     let iconAsset: String? = "flydotio"
     let docsURL = URL(string: "https://fly.io/docs/flyctl/tokens-create/")
 
+    let dashboardURL = URL(string: "https://fly.io/dashboard")
+
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "flyio.token"), !token.isEmpty else { return false }
         let apps = UserDefaults.standard.string(forKey: "flyio.apps") ?? ""
