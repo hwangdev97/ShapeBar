@@ -3,6 +3,7 @@ options:
   xcodeVersion: "26.0"
   deploymentTarget:
     macOS: "13.0"
+    iOS: "17.0"
   groupSortPosition: none
   createIntermediateGroups: true
 
@@ -42,6 +43,49 @@ targets:
         GENERATE_INFOPLIST_FILE: false
         SWIFT_VERSION: "5.9"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - package: AppStoreConnect-Swift-SDK
+
+  StackLightiOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/StackLight/Core
+      - path: Sources/StackLight/Providers
+      - path: Sources/StackLightiOS
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/StackLightiOS.entitlements"
+    info:
+      path: Sources/StackLightiOS/Resources/Info.plist
+      properties:
+        CFBundleIdentifier: com.shapebar.stacklight.ios
+        CFBundleName: StackLight
+        CFBundleDisplayName: StackLight
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.shapebar.stacklight.ios.refresh
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shapebar.stacklight.ios
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: QDJ93ZUQ9B
+        CODE_SIGN_ENTITLEMENTS: Sources/StackLightiOS/Resources/StackLightiOS.entitlements
+        GENERATE_INFOPLIST_FILE: false
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     dependencies:
       - package: AppStoreConnect-Swift-SDK
 
