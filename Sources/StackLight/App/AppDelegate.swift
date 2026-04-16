@@ -18,8 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "triangleshape.fill",
-                                   accessibilityDescription: "StackLight")
+            button.image = Self.menubarIcon()
         }
 
         // Build initial menu
@@ -46,17 +45,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func updateStatusIcon() {
+        guard let button = statusItem.button else { return }
         let hasErrors = !appState.errors.isEmpty
         let hasFailedDeploy = appState.deployments.contains { $0.status == .failed }
 
-        if hasErrors || hasFailedDeploy {
-            var image = NSImage(systemSymbolName: "triangleshape.fill", accessibilityDescription: "StackLight")
-            let config = NSImage.SymbolConfiguration(paletteColors: [.systemRed])
-            image = image?.withSymbolConfiguration(config)
-            statusItem.button?.image = image
-        } else {
-            statusItem.button?.image = NSImage(systemSymbolName: "triangleshape.fill", accessibilityDescription: "StackLight")
-        }
+        button.image = Self.menubarIcon()
+        button.contentTintColor = (hasErrors || hasFailedDeploy) ? .systemRed : nil
+    }
+
+    private static func menubarIcon() -> NSImage? {
+        let image = NSImage(named: "MenubarIcon")
+        image?.isTemplate = true
+        image?.accessibilityDescription = "StackLight"
+        return image
     }
 
     @objc func openDeploymentURL(_ sender: NSMenuItem) {
