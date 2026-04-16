@@ -2,7 +2,7 @@
   "fill" : {
     "linear-gradient" : [
       "srgb:0.01680,0.19835,1.00000,1.00000",
-      "srgb:0.00000,0.00000,0.00000,1.00000"
+      "srgb:1.00000,0.25279,1.00000,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -26,6 +26,18 @@
             "translation-in-points" : [
               0,
               0
+            ]
+          }
+        },
+        {
+          "glass" : false,
+          "image-name" : "Ellipse 1 2.png",
+          "name" : "Ellipse 1 2",
+          "position" : {
+            "scale" : 1.8,
+            "translation-in-points" : [
+              -15.17804154636724,
+              444.447175614192
             ]
           }
         }
