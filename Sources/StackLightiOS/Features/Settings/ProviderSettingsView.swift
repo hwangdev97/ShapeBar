@@ -214,7 +214,6 @@ struct ProviderSettingsView: View {
         }
     }
 
-    @ViewBuilder
     private var testTrailing: AnyView? {
         if testing {
             return AnyView(ProgressView().tint(.white))

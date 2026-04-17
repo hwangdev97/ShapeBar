@@ -21,7 +21,7 @@ extension View {
     /// Clear/interactive Liquid Glass for small floating chips (status badge,
     /// power button, top-bar toolbar items).
     @ViewBuilder
-    func liquidGlassChip<S: Shape>(in shape: S = Capsule()) -> some View where S == Capsule {
+    func liquidGlassChip(in shape: Capsule = Capsule()) -> some View {
         if #available(iOS 26.0, *) {
             self.glassEffect(.clear.interactive(), in: shape)
         } else {

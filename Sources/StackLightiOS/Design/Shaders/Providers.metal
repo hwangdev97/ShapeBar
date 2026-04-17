@@ -32,11 +32,6 @@ static inline float hash21(float2 p) {
     return fract(p.x * p.y);
 }
 
-static inline float2 hash22(float2 p) {
-    float n = hash21(p);
-    return float2(n, hash21(p + n));
-}
-
 // Classic 2D value noise, cheap enough for a full-screen color effect.
 static inline float valueNoise(float2 p) {
     float2 i = floor(p);
@@ -142,7 +137,6 @@ half4 gearShimmer(float2 pos, half4 /*color*/,
                   float4 tint, float4 accent, float4 glow,
                   float4 statusAccent, float intensity)
 {
-    float2 uv = pos / size;
     float2 p = centered(pos, size);
     float r = length(p);
     float core = smoothstep(0.55, 0.05, r);
