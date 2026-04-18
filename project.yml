@@ -74,8 +74,6 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        BGTaskSchedulerPermittedIdentifiers:
-          - app.yellowplus.StackLight.ios.refresh
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.yellowplus.StackLight.ios

@@ -19,10 +19,10 @@ final class XcodeCloudProvider: DeploymentProvider {
     }
 
     func fetchDeployments() async throws -> [Deployment] {
-        let provider = try makeProvider()
-
         let productsRequest = APIEndpoint.v1.ciProducts.get(parameters: .init(limit: 25))
-        let productsResponse = try await provider.request(productsRequest)
+        let productsResponse = try await ASCRequestRunner.run { provider in
+            try await provider.request(productsRequest)
+        }
 
         var deployments: [Deployment] = []
         for product in productsResponse.data {
@@ -31,7 +31,9 @@ final class XcodeCloudProvider: DeploymentProvider {
                     sort: [.minusnumber],
                     limit: 5
                 ))
-            let runsResponse = try await provider.request(runsRequest)
+            let runsResponse = try await ASCRequestRunner.run { provider in
+                try await provider.request(runsRequest)
+            }
 
             let productName = product.attributes?.name ?? "Build"
             let mapped = runsResponse.data.compactMap { run -> Deployment? in
@@ -64,19 +66,6 @@ final class XcodeCloudProvider: DeploymentProvider {
             SettingsField(key: "asc.privateKey", label: "Private Key (.p8)", isSecret: true, placeholder: "-----BEGIN PRIVATE KEY-----...",
                           hint: "Download the .p8 file when creating the key (one-time only), then paste its contents here")
         ]
-    }
-
-    private func makeProvider() throws -> APIProvider {
-        guard let credentials = ASCCredentialStore.current() else {
-            throw NSError(domain: "XcodeCloud", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "Missing API credentials — configure in Settings"])
-        }
-        let config = try APIConfiguration(
-            issuerID: credentials.issuerID,
-            privateKeyID: credentials.keyID,
-            privateKey: credentials.privateKey
-        )
-        return APIProvider(configuration: config)
     }
 
     private func mapStatus(

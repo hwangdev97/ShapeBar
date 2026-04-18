@@ -30,8 +30,6 @@ final class TestFlightProvider: DeploymentProvider {
             return []
         }
 
-        let provider = try makeProvider()
-
         let request = APIEndpoint
             .v1
             .builds
@@ -41,7 +39,9 @@ final class TestFlightProvider: DeploymentProvider {
                 limit: 10
             ))
 
-        let response = try await provider.request(request)
+        let response = try await ASCRequestRunner.run { provider in
+            try await provider.request(request)
+        }
         return response.data.compactMap { build in
             guard let attrs = build.attributes else { return nil }
 
@@ -65,19 +65,6 @@ final class TestFlightProvider: DeploymentProvider {
             SettingsField(key: "testflight.appId", label: "App ID", placeholder: "App Store Connect App ID (numeric)",
                           hint: "API credentials are shared with Xcode Cloud — configure them in the Xcode Cloud tab first")
         ]
-    }
-
-    private func makeProvider() throws -> APIProvider {
-        guard let credentials = ASCCredentialStore.current() else {
-            throw NSError(domain: "TestFlight", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "Missing API credentials — configure in Xcode Cloud tab"])
-        }
-        let config = try APIConfiguration(
-            issuerID: credentials.issuerID,
-            privateKeyID: credentials.keyID,
-            privateKey: credentials.privateKey
-        )
-        return APIProvider(configuration: config)
     }
 
     private func mapStatus(_ processingState: Build.Attributes.ProcessingState?, betaState: BuildAudienceType?) -> Deployment.Status {
