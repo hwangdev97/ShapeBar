@@ -75,11 +75,16 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        "UISupportedInterfaceOrientations~ipad":
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         BGTaskSchedulerPermittedIdentifiers:
-          - app.yellowplus.StackLight.ios.refresh
+          - app.yellowplus.StackLight.refresh
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.yellowplus.StackLight.ios
+        PRODUCT_BUNDLE_IDENTIFIER: app.yellowplus.StackLight
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGN_STYLE: Automatic
