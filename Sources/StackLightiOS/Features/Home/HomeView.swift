@@ -211,6 +211,7 @@ private struct HomeErrorBanner: View {
 
 // MARK: - Previews
 
+#if DEBUG
 @MainActor
 private func previewState(
     deployments: [Deployment] = [],
@@ -311,3 +312,4 @@ private let previewDeployments: [Deployment] = [
             lastRefresh: Date()
         ))
 }
+#endif
