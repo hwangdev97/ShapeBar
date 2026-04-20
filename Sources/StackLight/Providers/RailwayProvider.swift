@@ -10,7 +10,7 @@ final class RailwayProvider: DeploymentProvider {
     let docsURL = URL(string: "https://docs.railway.com/reference/public-api#creating-a-token")
 
     var dashboardURL: URL? {
-        if let projectId = UserDefaults.standard.string(forKey: "railway.projectId"), !projectId.isEmpty {
+        if let projectId = AppConfig.defaults.string(forKey: "railway.projectId"), !projectId.isEmpty {
             return URL(string: "https://railway.com/project/\(projectId)")
         }
         return URL(string: "https://railway.com/dashboard")
@@ -18,13 +18,13 @@ final class RailwayProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "railway.token"), !token.isEmpty else { return false }
-        let projectId = UserDefaults.standard.string(forKey: "railway.projectId") ?? ""
+        let projectId = AppConfig.defaults.string(forKey: "railway.projectId") ?? ""
         return !projectId.isEmpty
     }
 
     func fetchDeployments() async throws -> [Deployment] {
         guard let token = KeychainManager.read(key: "railway.token"),
-              let projectId = UserDefaults.standard.string(forKey: "railway.projectId"),
+              let projectId = AppConfig.defaults.string(forKey: "railway.projectId"),
               !projectId.isEmpty else {
             return []
         }

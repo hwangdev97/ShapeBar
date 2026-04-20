@@ -286,7 +286,7 @@ struct ProviderSettingsView: View {
             if field.isSecret {
                 fieldValues[field.key] = KeychainManager.read(key: field.key) ?? ""
             } else {
-                fieldValues[field.key] = UserDefaults.standard.string(forKey: field.key) ?? ""
+                fieldValues[field.key] = AppConfig.defaults.string(forKey: field.key) ?? ""
             }
         }
     }
@@ -301,7 +301,7 @@ struct ProviderSettingsView: View {
                     try? KeychainManager.save(key: field.key, value: value)
                 }
             } else {
-                UserDefaults.standard.set(value, forKey: field.key)
+                AppConfig.defaults.set(value, forKey: field.key)
             }
         }
         ASCCredentialStore.invalidate()
@@ -339,7 +339,7 @@ struct ProviderSettingsView: View {
             if field.isSecret {
                 KeychainManager.delete(key: field.key)
             } else {
-                UserDefaults.standard.removeObject(forKey: field.key)
+                AppConfig.defaults.removeObject(forKey: field.key)
             }
             fieldValues[field.key] = ""
         }

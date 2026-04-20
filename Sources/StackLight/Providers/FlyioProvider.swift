@@ -13,14 +13,14 @@ final class FlyioProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "flyio.token"), !token.isEmpty else { return false }
-        let apps = UserDefaults.standard.string(forKey: "flyio.apps") ?? ""
+        let apps = AppConfig.defaults.string(forKey: "flyio.apps") ?? ""
         return !apps.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     func fetchDeployments() async throws -> [Deployment] {
         guard let token = KeychainManager.read(key: "flyio.token") else { return [] }
 
-        let apps = (UserDefaults.standard.string(forKey: "flyio.apps") ?? "")
+        let apps = (AppConfig.defaults.string(forKey: "flyio.apps") ?? "")
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }

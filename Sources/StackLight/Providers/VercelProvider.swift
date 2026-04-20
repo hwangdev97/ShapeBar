@@ -10,7 +10,7 @@ final class VercelProvider: DeploymentProvider {
     let docsURL = URL(string: "https://vercel.com/account/tokens")
 
     var dashboardURL: URL? {
-        if let teamId = UserDefaults.standard.string(forKey: "vercel.teamId"), !teamId.isEmpty {
+        if let teamId = AppConfig.defaults.string(forKey: "vercel.teamId"), !teamId.isEmpty {
             return URL(string: "https://vercel.com/\(teamId)")
         }
         return URL(string: "https://vercel.com/dashboard")
@@ -27,7 +27,7 @@ final class VercelProvider: DeploymentProvider {
         var components = URLComponents(string: "https://api.vercel.com/v6/deployments")!
         components.queryItems = [URLQueryItem(name: "limit", value: "10")]
 
-        if let teamId = UserDefaults.standard.string(forKey: "vercel.teamId"), !teamId.isEmpty {
+        if let teamId = AppConfig.defaults.string(forKey: "vercel.teamId"), !teamId.isEmpty {
             components.queryItems?.append(URLQueryItem(name: "teamId", value: teamId))
         }
 

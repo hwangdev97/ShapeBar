@@ -13,14 +13,14 @@ final class NetlifyProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "netlify.token"), !token.isEmpty else { return false }
-        let siteIds = UserDefaults.standard.string(forKey: "netlify.siteIds") ?? ""
+        let siteIds = AppConfig.defaults.string(forKey: "netlify.siteIds") ?? ""
         return !siteIds.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     func fetchDeployments() async throws -> [Deployment] {
         guard let token = KeychainManager.read(key: "netlify.token") else { return [] }
 
-        let siteIds = (UserDefaults.standard.string(forKey: "netlify.siteIds") ?? "")
+        let siteIds = (AppConfig.defaults.string(forKey: "netlify.siteIds") ?? "")
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
