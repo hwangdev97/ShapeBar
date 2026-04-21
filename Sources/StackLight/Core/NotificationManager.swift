@@ -6,7 +6,7 @@ final class NotificationManager {
     private var previousStates: [String: Deployment.Status] = [:]
 
     func checkForChanges(old: [Deployment], new: [Deployment]) {
-        guard UserDefaults.standard.object(forKey: "notificationsEnabled") as? Bool ?? true else {
+        guard AppConfig.defaults.object(forKey: "notificationsEnabled") as? Bool ?? true else {
             updateStates(from: new)
             return
         }

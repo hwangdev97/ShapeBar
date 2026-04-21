@@ -15,9 +15,10 @@ final class AppState: ObservableObject {
 
     private let pollingManager = PollingManager()
     private let notificationManager = NotificationManager()
+    private var lastPublishedFingerprint: String = ""
 
     func startPolling() {
-        let interval = UserDefaults.standard.double(forKey: "pollInterval")
+        let interval = AppConfig.defaults.double(forKey: "pollInterval")
         pollingManager.pollInterval = interval > 0 ? interval : 60
 
         pollingManager.onUpdate = { [weak self] newDeployments in
@@ -27,6 +28,7 @@ final class AppState: ObservableObject {
             self.lastRefresh = Date()
             self.isRefreshing = false
             self.notificationManager.checkForChanges(old: old, new: newDeployments)
+            self.publishSnapshot(newDeployments)
         }
         pollingManager.onError = { [weak self] providerID, error in
             self?.errors[providerID] = error.localizedDescription
@@ -56,5 +58,19 @@ final class AppState: ObservableObject {
     var hasConfiguredProvider: Bool {
         if let override = previewConfiguredOverride { return override }
         return !ServiceRegistry.shared.configuredProviders.isEmpty
+    }
+
+    /// Write the current deployments to the shared App Group container and
+    /// ping the widget timeline if the status fingerprint changed.
+    private func publishSnapshot(_ deployments: [Deployment]) {
+        SharedStore.write(deployments: deployments)
+        let fingerprint = deployments
+            .map { "\($0.providerID):\($0.id):\($0.status.rawValue)" }
+            .sorted()
+            .joined(separator: "|")
+        if fingerprint != lastPublishedFingerprint {
+            lastPublishedFingerprint = fingerprint
+            WidgetRefresh.reloadAll()
+        }
     }
 }

@@ -12,7 +12,7 @@ final class GitHubActionsProvider: DeploymentProvider {
     var dashboardURL: URL? {
         // If a single repo is configured, jump straight to its Actions tab;
         // otherwise open the user's global "recent activity" feed.
-        let repos = (UserDefaults.standard.string(forKey: "github.repos") ?? "")
+        let repos = (AppConfig.defaults.string(forKey: "github.repos") ?? "")
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
@@ -24,14 +24,14 @@ final class GitHubActionsProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "github.token"), !token.isEmpty else { return false }
-        let repos = UserDefaults.standard.string(forKey: "github.repos") ?? ""
+        let repos = AppConfig.defaults.string(forKey: "github.repos") ?? ""
         return !repos.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     func fetchDeployments() async throws -> [Deployment] {
         guard let token = KeychainManager.read(key: "github.token") else { return [] }
 
-        let repos = (UserDefaults.standard.string(forKey: "github.repos") ?? "")
+        let repos = (AppConfig.defaults.string(forKey: "github.repos") ?? "")
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }

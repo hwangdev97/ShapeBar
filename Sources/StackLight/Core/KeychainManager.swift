@@ -10,21 +10,33 @@ enum KeychainError: Error {
 enum KeychainManager {
     private static let service = "app.yellowplus.StackLight"
 
-    static func save(key: String, value: String) throws {
-        let data = Data(value.utf8)
+    /// Optional keychain access group. When non-nil, all queries include
+    /// `kSecAttrAccessGroup` so the host app and extensions can share items.
+    /// macOS leaves this nil and keeps its current per-app scope.
+    static var accessGroup: String?
 
-        // Delete existing item first (query without value data)
-        let deleteQuery: [String: Any] = [
+    private static func baseQuery(key: String) -> [String: Any] {
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
             kSecUseDataProtectionKeychain as String: true
         ]
-        SecItemDelete(deleteQuery as CFDictionary)
+        if let group = accessGroup {
+            query[kSecAttrAccessGroup as String] = group
+        }
+        return query
+    }
+
+    static func save(key: String, value: String) throws {
+        let data = Data(value.utf8)
+
+        // Delete existing item first (query without value data)
+        SecItemDelete(baseQuery(key: key) as CFDictionary)
 
         // Add new item. Data Protection Keychain + AfterFirstUnlock gives us
         // per-app scoped storage with no ACL prompts on read.
-        var addQuery = deleteQuery
+        var addQuery = baseQuery(key: key)
         addQuery[kSecValueData as String] = data
         addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         let status = SecItemAdd(addQuery as CFDictionary, nil)
@@ -34,14 +46,10 @@ enum KeychainManager {
     }
 
     static func read(key: String) -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecReturnData as String: true,
-            kSecUseDataProtectionKeychain as String: true
-        ]
+        var query = baseQuery(key: key)
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecReturnData as String] = true
+
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         guard status == errSecSuccess, let data = result as? Data else {
@@ -51,12 +59,6 @@ enum KeychainManager {
     }
 
     static func delete(key: String) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
-            kSecUseDataProtectionKeychain as String: true
-        ]
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(baseQuery(key: key) as CFDictionary)
     }
 }

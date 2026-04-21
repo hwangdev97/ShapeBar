@@ -14,7 +14,7 @@ final class AppState: ObservableObject {
 
     func startPolling() {
         // Read poll interval from settings
-        let interval = UserDefaults.standard.double(forKey: "pollInterval")
+        let interval = AppConfig.defaults.double(forKey: "pollInterval")
         pollingManager.pollInterval = interval > 0 ? interval : 60
 
         pollingManager.onUpdate = { [weak self] newDeployments in

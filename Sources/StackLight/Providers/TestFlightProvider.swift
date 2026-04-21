@@ -10,7 +10,7 @@ final class TestFlightProvider: DeploymentProvider {
     let docsURL = URL(string: "https://appstoreconnect.apple.com/apps")
 
     var dashboardURL: URL? {
-        if let appId = UserDefaults.standard.string(forKey: "testflight.appId"), !appId.isEmpty {
+        if let appId = AppConfig.defaults.string(forKey: "testflight.appId"), !appId.isEmpty {
             return URL(string: "https://appstoreconnect.apple.com/apps/\(appId)/testflight/ios")
         }
         return URL(string: "https://appstoreconnect.apple.com/apps")
@@ -18,7 +18,7 @@ final class TestFlightProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard ASCCredentialStore.current() != nil,
-              let appId = UserDefaults.standard.string(forKey: "testflight.appId"),
+              let appId = AppConfig.defaults.string(forKey: "testflight.appId"),
               !appId.isEmpty else {
             return false
         }
@@ -26,7 +26,7 @@ final class TestFlightProvider: DeploymentProvider {
     }
 
     func fetchDeployments() async throws -> [Deployment] {
-        guard let appId = UserDefaults.standard.string(forKey: "testflight.appId"), !appId.isEmpty else {
+        guard let appId = AppConfig.defaults.string(forKey: "testflight.appId"), !appId.isEmpty else {
             return []
         }
 

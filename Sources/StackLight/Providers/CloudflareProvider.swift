@@ -9,7 +9,7 @@ final class CloudflareProvider: DeploymentProvider {
     let docsURL = URL(string: "https://dash.cloudflare.com/profile/api-tokens")
 
     var dashboardURL: URL? {
-        if let accountId = UserDefaults.standard.string(forKey: "cloudflare.accountId"), !accountId.isEmpty {
+        if let accountId = AppConfig.defaults.string(forKey: "cloudflare.accountId"), !accountId.isEmpty {
             return URL(string: "https://dash.cloudflare.com/\(accountId)/workers-and-pages")
         }
         return URL(string: "https://dash.cloudflare.com")
@@ -17,7 +17,7 @@ final class CloudflareProvider: DeploymentProvider {
 
     var isConfigured: Bool {
         guard let token = KeychainManager.read(key: "cloudflare.token"),
-              let accountId = UserDefaults.standard.string(forKey: "cloudflare.accountId") else {
+              let accountId = AppConfig.defaults.string(forKey: "cloudflare.accountId") else {
             return false
         }
         return !token.isEmpty && !accountId.isEmpty
@@ -25,11 +25,11 @@ final class CloudflareProvider: DeploymentProvider {
 
     func fetchDeployments() async throws -> [Deployment] {
         guard let token = KeychainManager.read(key: "cloudflare.token"),
-              let accountId = UserDefaults.standard.string(forKey: "cloudflare.accountId") else {
+              let accountId = AppConfig.defaults.string(forKey: "cloudflare.accountId") else {
             return []
         }
 
-        var projectNames = UserDefaults.standard.string(forKey: "cloudflare.projectNames")?
+        var projectNames = AppConfig.defaults.string(forKey: "cloudflare.projectNames")?
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty } ?? []
