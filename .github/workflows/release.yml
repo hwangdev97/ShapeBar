@@ -93,9 +93,12 @@ jobs:
           security create-keychain -p "${keychain_password}" "${keychain_path}"
           security set-keychain-settings -lut 21600 "${keychain_path}"
           security unlock-keychain -p "${keychain_password}" "${keychain_path}"
+          security list-keychains -d user -s "${keychain_path}" $(security list-keychains -d user | sed 's/[",]//g')
           security import "${certificate_path}" \
             -P "${DEVELOPER_ID_CERTIFICATE_PASSWORD}" \
             -A \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security \
             -t cert \
             -f pkcs12 \
             -k "${keychain_path}"
@@ -103,7 +106,7 @@ jobs:
 
           signing_identity="$(
             security find-identity -v -p codesigning "${keychain_path}" \
-              | awk -F '"' '/Developer ID Application/ { print $2; exit }'
+              | awk '/Developer ID Application/ { print $2; exit }'
           )"
 
           if [[ -z "${signing_identity}" ]]; then
