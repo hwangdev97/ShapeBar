@@ -1,0 +1,264 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v1.0.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the GitHub release as a prerelease"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name || inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  APP_NAME: StackLight
+  SCHEME: StackLight
+  PROJECT: StackLight.xcodeproj
+  CONFIGURATION: Release
+  ENTITLEMENTS: Sources/StackLight/StackLight.entitlements
+
+jobs:
+  macos:
+    name: Build, Notarize, and Publish macOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            tag="${{ inputs.tag }}"
+          fi
+
+          if [[ -z "${tag}" ]]; then
+            echo "Release tag is required." >&2
+            exit 1
+          fi
+
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "asset_name=${APP_NAME}-${tag}-macOS.zip" >> "${GITHUB_OUTPUT}"
+
+      - name: Install XcodeGen
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Import Developer ID certificate
+        id: signing
+        env:
+          DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${DEVELOPER_ID_CERTIFICATE_BASE64}" ]]; then
+            echo "Missing secret: DEVELOPER_ID_CERTIFICATE_BASE64" >&2
+            exit 1
+          fi
+
+          certificate_path="${RUNNER_TEMP}/developer-id.p12"
+          keychain_path="${RUNNER_TEMP}/app-signing.keychain-db"
+          keychain_password="$(uuidgen)"
+
+          printf "%s" "${DEVELOPER_ID_CERTIFICATE_BASE64}" | base64 --decode > "${certificate_path}"
+
+          security create-keychain -p "${keychain_password}" "${keychain_path}"
+          security set-keychain-settings -lut 21600 "${keychain_path}"
+          security unlock-keychain -p "${keychain_password}" "${keychain_path}"
+          security import "${certificate_path}" \
+            -P "${DEVELOPER_ID_CERTIFICATE_PASSWORD}" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "${keychain_path}"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${keychain_password}" "${keychain_path}"
+
+          signing_identity="$(
+            security find-identity -v -p codesigning "${keychain_path}" \
+              | awk -F '"' '/Developer ID Application/ { print $2; exit }'
+          )"
+
+          if [[ -z "${signing_identity}" ]]; then
+            echo "No Developer ID Application identity found in certificate." >&2
+            security find-identity -v -p codesigning "${keychain_path}" >&2 || true
+            exit 1
+          fi
+
+          echo "identity=${signing_identity}" >> "${GITHUB_OUTPUT}"
+          echo "SIGNING_KEYCHAIN=${keychain_path}" >> "${GITHUB_ENV}"
+
+      - name: Build app
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -quiet \
+            -project "${PROJECT}" \
+            -scheme "${SCHEME}" \
+            -configuration "${CONFIGURATION}" \
+            -destination "generic/platform=macOS" \
+            -derivedDataPath "${RUNNER_TEMP}/DerivedData" \
+            build \
+            PRODUCT_BUNDLE_IDENTIFIER="app.yellowplus.StackLight.github" \
+            STACKLIGHT_DISTRIBUTION_CHANNEL="github" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""
+
+      - name: Sign app
+        env:
+          SIGNING_IDENTITY: ${{ steps.signing.outputs.identity }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          product_dir="${RUNNER_TEMP}/DerivedData/Build/Products/${CONFIGURATION}"
+          app_path="${product_dir}/${APP_NAME}.app"
+
+          if [[ ! -d "${app_path}" ]]; then
+            echo "Built app was not found at ${app_path}" >&2
+            exit 1
+          fi
+
+          while IFS= read -r -d '' item; do
+            codesign \
+              --force \
+              --timestamp \
+              --options runtime \
+              --sign "${SIGNING_IDENTITY}" \
+              --keychain "${SIGNING_KEYCHAIN}" \
+              "${item}"
+          done < <(
+            find "${app_path}/Contents" \
+              -depth \
+              \( -name "*.framework" -o -name "*.dylib" -o -name "*.so" -o -name "*.xpc" -o -name "*.appex" -o -name "*.app" \) \
+              -print0
+          )
+
+          codesign \
+            --force \
+            --timestamp \
+            --options runtime \
+            --entitlements "${ENTITLEMENTS}" \
+            --sign "${SIGNING_IDENTITY}" \
+            --keychain "${SIGNING_KEYCHAIN}" \
+            "${app_path}"
+
+          codesign --verify --deep --strict --verbose=2 "${app_path}"
+          spctl --assess --type execute --verbose=4 "${app_path}" || true
+
+      - name: Notarize app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for secret_name in APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [[ -z "${!secret_name}" ]]; then
+              echo "Missing secret: ${secret_name}" >&2
+              exit 1
+            fi
+          done
+
+          product_dir="${RUNNER_TEMP}/DerivedData/Build/Products/${CONFIGURATION}"
+          app_path="${product_dir}/${APP_NAME}.app"
+          notary_zip="${RUNNER_TEMP}/${APP_NAME}-notary.zip"
+
+          ditto -c -k --keepParent "${app_path}" "${notary_zip}"
+
+          xcrun notarytool submit "${notary_zip}" \
+            --apple-id "${APPLE_ID}" \
+            --password "${APPLE_APP_SPECIFIC_PASSWORD}" \
+            --team-id "${APPLE_TEAM_ID}" \
+            --wait
+
+          xcrun stapler staple "${app_path}"
+          xcrun stapler validate "${app_path}"
+
+      - name: Package app
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          product_dir="${RUNNER_TEMP}/DerivedData/Build/Products/${CONFIGURATION}"
+          app_path="${product_dir}/${APP_NAME}.app"
+          artifact_dir="${RUNNER_TEMP}/artifacts"
+          artifact_path="${artifact_dir}/${{ steps.release.outputs.asset_name }}"
+
+          if [[ ! -d "${app_path}" ]]; then
+            echo "Built app was not found at ${app_path}" >&2
+            exit 1
+          fi
+
+          mkdir -p "${artifact_dir}"
+          ditto -c -k --sequesterRsrc --keepParent "${app_path}" "${artifact_path}"
+
+          shasum -a 256 "${artifact_path}" | tee "${artifact_path}.sha256"
+          echo "ARTIFACT_PATH=${artifact_path}" >> "${GITHUB_ENV}"
+          echo "CHECKSUM_PATH=${artifact_path}.sha256" >> "${GITHUB_ENV}"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease || false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          prerelease_flag=()
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            prerelease_flag+=(--prerelease)
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${ARTIFACT_PATH}" "${CHECKSUM_PATH}" --clobber
+          else
+            gh release create "${TAG}" \
+              "${ARTIFACT_PATH}" \
+              "${CHECKSUM_PATH}" \
+              --title "${APP_NAME} ${TAG}" \
+              --generate-notes \
+              "${prerelease_flag[@]}"
+          fi
+
+      - name: Delete signing keychain
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${SIGNING_KEYCHAIN:-}" && -f "${SIGNING_KEYCHAIN}" ]]; then
+            security delete-keychain "${SIGNING_KEYCHAIN}"
+          fi

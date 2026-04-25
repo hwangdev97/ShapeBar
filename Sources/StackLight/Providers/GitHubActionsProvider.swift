@@ -28,38 +28,30 @@ final class GitHubActionsProvider: DeploymentProvider {
         return !repos.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    func fetchDeployments() async throws -> [Deployment] {
-        guard let token = KeychainManager.read(key: "github.token") else { return [] }
+    func fetchDeployments() async throws -> DeploymentFetchResult {
+        guard let token = KeychainManager.read(key: "github.token") else { return .empty }
 
         let repos = (AppConfig.defaults.string(forKey: "github.repos") ?? "")
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
 
-        guard !repos.isEmpty else { return [] }
+        guard !repos.isEmpty else { return .empty }
 
-        return try await withThrowingTaskGroup(of: [Deployment].self) { group in
-            for repo in repos {
-                group.addTask {
-                    try await self.fetchRuns(token: token, repo: repo)
-                }
-            }
-            var all: [Deployment] = []
-            for try await batch in group {
-                all.append(contentsOf: batch)
-            }
-            return all
+        return await DeploymentFetchResult.collecting(repos, name: { $0 }) { repo in
+            try await Self.fetchRuns(token: token, repo: repo)
         }
     }
 
     func settingsFields() -> [SettingsField] {
         [
             SettingsField(key: "github.token", label: "Personal Access Token", isSecret: true, placeholder: "ghp_... (needs repo scope)"),
-            SettingsField(key: "github.repos", label: "Repositories", placeholder: "owner/repo, owner/repo2")
+            SettingsField(key: "github.repos", label: "Repositories", placeholder: "owner/repo", isMultiValue: true,
+                          hint: "Add repos to watch for workflow runs")
         ]
     }
 
-    private func fetchRuns(token: String, repo: String) async throws -> [Deployment] {
+    private static func fetchRuns(token: String, repo: String) async throws -> [Deployment] {
         var components = URLComponents(string: "https://api.github.com/repos/\(repo)/actions/runs")!
         components.queryItems = [URLQueryItem(name: "per_page", value: "10")]
 
@@ -67,10 +59,20 @@ final class GitHubActionsProvider: DeploymentProvider {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, httpResponse) = try await URLSession.shared.data(for: request)
+        if let http = httpResponse as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            let message = (try? JSONDecoder().decode(GitHubErrorResponse.self, from: data))?.message
+                ?? "HTTP \(http.statusCode)"
+            throw NSError(domain: "GitHubActions", code: http.statusCode,
+                          userInfo: [NSLocalizedDescriptionKey: message])
+        }
         let response = try JSONDecoder.githubDecoder.decode(GHWorkflowRunsResponse.self, from: data)
         return response.workflow_runs.map { $0.toDeployment(repo: repo) }
     }
+}
+
+struct GitHubErrorResponse: Decodable {
+    let message: String
 }
 
 // MARK: - API Response Models
