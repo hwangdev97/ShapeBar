@@ -67,7 +67,7 @@ final class TestFlightProvider: DeploymentProvider {
         let request = APIEndpoint
             .v1
             .apps
-            .get(parameters: .init(filterId: appIds, limit: max(appIds.count, 1)))
+            .get(parameters: .init(filterID: appIds, limit: max(appIds.count, 1)))
         let response = try await provider.request(request)
         var map: [String: String] = [:]
         for app in response.data {
