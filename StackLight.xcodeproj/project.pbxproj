@@ -169,6 +169,7 @@
 		EC101DFE5AAC27C6F1C9A8DB /* WidgetStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613D8E8B5DD354304E9C2637 /* WidgetStatusBadge.swift */; };
 		ED27027378601433B0044B57 /* RailwayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7FED1ACAFCF2322568BF7E9 /* RailwayProvider.swift */; };
 		EE549512DF2A55A2048E8B08 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1640F5519AF9459BC44D72F /* WidgetRefresh.swift */; };
+		EF78E9EAA91EF6B044EA7DE5 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 338190A01BFDC0F9D08CE188 /* AppIcon.icon */; };
 		F259FA1CFA075718FB0CCD2B /* DeploymentWidgetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CF8F4844623A0DD6A9963F /* DeploymentWidgetIntent.swift */; };
 		F2BEFA5567DB1BE91D55C38F /* DeploymentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 307FCF0B35FD7FA8115C0178 /* DeploymentCard.swift */; };
 		F3B0CDB7D0D66861F9C6755E /* github.svg in Resources */ = {isa = PBXBuildFile; fileRef = B4B91D94E2B70694AED308E2 /* github.svg */; };
@@ -826,6 +827,7 @@
 			buildConfigurationList = 208B6F13D4B7C7000BB23588 /* Build configuration list for PBXNativeTarget "StackLightWatch" */;
 			buildPhases = (
 				50C6394BBA1C7AF98E5650B9 /* Sources */,
+				82D0A989358A8FF65EF2B408 /* Resources */,
 				2896CD41416B8876CC3ADA37 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -978,6 +980,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		82D0A989358A8FF65EF2B408 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF78E9EAA91EF6B044EA7DE5 /* AppIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		949310F7094766F24E48A692 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
