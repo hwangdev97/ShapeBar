@@ -129,6 +129,7 @@ targets:
       - path: Sources/StackLight/Core/SharedStore.swift
       - path: Sources/StackLight/Core/AppConfig.swift
       - path: Sources/StackLight/Core/WidgetRefresh.swift
+      - path: Sources/StackLight/AppIcon.icon
       - path: Sources/StackLightWidgets/Views/WidgetStatusBadge.swift
       - path: Sources/StackLightWatch
         excludes:
@@ -158,6 +159,7 @@ targets:
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "4"
         WATCHOS_DEPLOYMENT_TARGET: "10.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - target: StackLightWatchComplications
         embed: true
