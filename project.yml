@@ -94,6 +94,8 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         BGTaskSchedulerPermittedIdentifiers:
           - app.yellowplus.StackLight.refresh
+        NSUserActivityTypes:
+          - app.yellowplus.StackLight.openDeployment
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.yellowplus.StackLight
@@ -142,6 +144,8 @@ targets:
         WKApplication: true
         WKCompanionAppBundleIdentifier: app.yellowplus.StackLight
         WKWatchOnly: false
+        NSUserActivityTypes:
+          - app.yellowplus.StackLight.openDeployment
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.yellowplus.StackLight.watchkitapp

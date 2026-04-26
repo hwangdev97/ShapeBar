@@ -241,20 +241,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          prerelease_flag=()
-          if [[ "${PRERELEASE}" == "true" ]]; then
-            prerelease_flag+=(--prerelease)
-          fi
-
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" "${ARTIFACT_PATH}" "${CHECKSUM_PATH}" --clobber
-          else
+          elif [[ "${PRERELEASE}" == "true" ]]; then
             gh release create "${TAG}" \
               "${ARTIFACT_PATH}" \
               "${CHECKSUM_PATH}" \
               --title "${APP_NAME} ${TAG}" \
               --generate-notes \
-              "${prerelease_flag[@]}"
+              --prerelease
+          else
+            gh release create "${TAG}" \
+              "${ARTIFACT_PATH}" \
+              "${CHECKSUM_PATH}" \
+              --title "${APP_NAME} ${TAG}" \
+              --generate-notes
           fi
 
       - name: Delete signing keychain

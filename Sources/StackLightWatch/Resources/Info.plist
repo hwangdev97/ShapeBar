@@ -22,15 +22,15 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>app.yellowplus.StackLight.openDeployment</string>
+	</array>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>app.yellowplus.StackLight</string>
 	<key>WKWatchOnly</key>
 	<false/>
-	<key>NSUserActivityTypes</key>
-	<array>
-		<string>app.yellowplus.StackLight.openDeployment</string>
-	</array>
 </dict>
 </plist>
